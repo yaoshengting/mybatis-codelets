@@ -68,14 +68,14 @@
   @History
   @GenerateId
   public class UserInfoEntry extends IBaseEntry {
-	/** 用户ID */
+	//用户ID
 	@EntryPk
 	private Long userId;
-	/** 用户名 */
+	//用户名
 	private String userName;
-	/** 手机号码 */
+	//手机号
 	private String phone;
-	/** 密码 */
+	//密码
 	private String passWord;
   }
   ```
