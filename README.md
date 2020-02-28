@@ -12,7 +12,7 @@
 # 设计规范
   1. 要根据项目的情况进行领域模型分层，必须单独分出DO、QueryVO；其他VO，DTO，BO等视情况而定
   2. 模型之间的转换可以使用的工具有
-   +Dozer
-   +org.springframework.beans.BeanUtils
-   +org.apache.commons.beanutils.BeanUtils
-   +apache的BeanUtils性能比较差，不建议使用；使用前也先了解下不同工具包属性复制的特点
+   + Dozer
+   + org.springframework.beans.BeanUtils
+   + org.apache.commons.beanutils.BeanUtils
+   + apache的BeanUtils性能比较差，不建议使用；使用前也先了解下不同工具包属性复制的特点
