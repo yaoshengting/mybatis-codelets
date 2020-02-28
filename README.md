@@ -41,3 +41,17 @@
    + protected int deleteByColumn(final Map<String, Object> columnValue); *根据列删除数据*
    + protected boolean deleteListByIdList(final List<Long> idList); *根据主键集合删除数据*
    + protected T queryOneEntryByColumns(final Map<String, Object> columnValues); *根据指定列查询出一条数据，如果是多条，则抛异常*
+# 示例
+ 1. 业务Dao接口继承ISingleTableDao接口并指定与数据库字段队列的Entry实体类
+    public interface IUserLoginInfoDao extends ISingleTableDao<UserInfoEntry> {
+      UserInfoEntry queryByUserName(final String userName);
+    }
+ 2. 业务Dao实现类继承ISingleTableDao接口的实现类SingleTableDao
+   @Repository
+   public class UserLoginInfoDaoImpl extends SingleTableDao<UserInfoEntry> implements IUserLoginInfoDao {
+	 @Override
+	 public UserInfoEntry queryByUserName(final String userName) {
+		    final Map<String, Object> queryCondMap = new HashMap<String, Object>();
+		    queryCondMap.put("USER_NAME", userName);
+		    return queryOneEntryByColumns(queryCondMap);
+	 }
