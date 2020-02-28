@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+  PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" 
+  "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.codelets.dao.core.IGenericHisMapper">
+	<!-- 查询最小版本号 -->
+	<select id="queryFirstVersion" resultType="java.lang.Integer">
+		SELECT MIN(VERSION)
+		  FROM ${tableName}
+	</select>
+	<!-- 查询最大版本号 -->
+	<select id="queryLastVersion" resultType="java.lang.Integer">
+		SELECT MAX(VERSION)
+		  FROM ${tableName}
+	</select>
+</mapper>

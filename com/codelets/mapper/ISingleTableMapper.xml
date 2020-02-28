@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+  PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" 
+  "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.codelets.dao.core.ISingleTableMapper">
+	<!-- 根据条件删除 -->
+	<delete id="delete" parameterType="com.codelets.dao.condition.DeleteArgument">
+		DELETE FROM ${tableName}
+		 WHERE
+		<foreach collection="whereColumns" item="entry" separator="and">
+			${entry.columnName} ${entry.operand}
+			<choose>
+				<when test="entry.operand.name() == 'IN'">
+					<foreach collection="entry.value" item="inValue" open="(" close=")" separator=",">
+						#{inValue}
+					</foreach>
+				</when>
+				<when test="entry.operand.name() == 'IS'">
+					NULL
+				</when>
+				<otherwise>
+					#{entry.value}
+				</otherwise>
+			</choose>
+		</foreach>
+	</delete>
+	<!-- 根据主键Id,批量删除数据 -->
+	<delete id="deleteListByIdList">
+		DELETE FROM ${tableName}
+		 WHERE ${idColumnName} in
+		<foreach collection="valueList" item="idValue" open="(" close=")" separator=",">
+			${idValue}
+		</foreach>
+	</delete>
+    <!-- 查询数量 -->
+	<select id="queryCount" parameterType="com.codelets.dao.condition.QueryArgument" resultType="java.lang.Long">
+		SELECT COUNT(1)
+		  FROM ${tableName}
+		<if test="whereColumns != null and whereColumns.size() > 0">
+			WHERE
+			<foreach collection="whereColumns" item="entry" separator="and">
+				${entry.columnName} ${entry.operand}
+				<choose>
+					<when test="entry.operand.name() == 'IN'">
+						<foreach collection="entry.value" item="inValue" open="(" close=")" separator=",">
+							#{inValue}
+						</foreach>
+					</when>
+					<when test="entry.operand.name() == 'IS'">
+						NULL
+					</when>
+					<when test="entry.operand.name() == 'LIKE'">
+						CONCAT('%',#{entry.value},'%')
+					</when>
+					<otherwise>
+						#{entry.value}
+					</otherwise>
+				</choose>
+			</foreach>
+		</if>
+	</select>
+	<!-- 插入一条记录，使用数据库自增主键，返回主键 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="generateID">
+		<include refid="INSERTSQL" />
+	</insert>
+	<!-- 插入一条记录，无主键 -->
+	<insert id="insertWithoutPK">
+		<include refid="INSERTSQL" />
+	</insert>
+	<!-- 插入一条记录，自带主键 -->
+	<insert id="insertWithPK">
+		<include refid="INSERTSQL" />
+	</insert>
+	<!-- 插入记录 -->
+	<sql id="INSERTSQL">
+		INSERT INTO ${tableName}
+		<foreach collection="columnNameList" item="columnName" open="("
+			close=")" separator=",">
+			${columnName}
+		</foreach>
+		VALUES
+		<foreach collection="valueList" item="singleColumn" open="("
+			close=")" separator=",">
+			#{singleColumn}
+		</foreach>
+	</sql>
+	<!-- -批量插入 -->
+	<insert id="insertList">
+		INSERT INTO ${tableName}
+		<foreach collection="columnNameList" item="columnName" open="(" close=")" separator=",">
+			${columnName}
+		</foreach>
+		VALUES
+		<foreach collection="valueList" item="entry" separator=",">
+			<foreach collection="entry" item="singleColumn" open="(" separator="," close=")">
+				#{singleColumn}
+			</foreach>
+		</foreach>
+	</insert>
+	<!-- 批量插入，返回主键 -->
+	<insert id="newInsertList" useGeneratedKeys="true" keyProperty="tableId">
+		INSERT INTO ${list[0].tableName}
+		<foreach collection="list[0].columnName" item="columnName" open="(" close=")" separator=",">
+			${columnName}
+		</foreach>
+		VALUES
+		<foreach collection="list" item="entry" separator=",">
+			<foreach collection="entry.columnValue" item="singleColumn" open="(" separator="," close=")">
+				#{singleColumn}
+			</foreach>
+		</foreach>
+	</insert>
+	<!-- 更新 -->
+	<update id="update" parameterType="com.codelets.dao.condition.UpdateArgument">
+		UPDATE ${tableName}
+		   SET
+		<foreach collection="toUpdateColumns" item="colVo"  separator=",">
+			${colVo.columnName} = #{colVo.columnValue}
+		</foreach>
+		WHERE
+		<foreach collection="whereColumns" item="entry" separator="and">
+			${entry.columnName} ${entry.operand} #{entry.value}
+		</foreach>
+	</update>
+	<!-- 根据条件进行查询 -->
+	<select id="queryForList" parameterType="com.codelets.dao.condition.QueryArgument" resultType="java.util.HashMap">
+		SELECT
+		<foreach collection="resultColumns" item="entry" separator=",">
+			${entry}
+		</foreach>
+		 FROM ${tableName}
+		<if test="whereColumns != null and whereColumns.size() > 0">
+			WHERE
+			<foreach collection="whereColumns" item="entry" separator="and">
+				${entry.columnName} ${entry.operand}
+				<choose>
+					<when test="entry.operand.name() == 'IN'">
+						<foreach collection="entry.value" item="inValue" open="(" close=")" separator=",">
+							#{inValue}
+						</foreach>
+					</when>
+					<when test="entry.operand.name() == 'IS'">
+						NULL
+					</when>
+					<when test="entry.operand.name() == 'LIKE'">
+						CONCAT('%',#{entry.value},'%')
+					</when>
+					<otherwise>
+						#{entry.value}
+					</otherwise>
+				</choose>
+			</foreach>
+		</if>
+		<if test="orderMap != null">
+			ORDER BY 
+			<foreach collection="orderMap" index="key" item="value" separator=",">
+				${key} ${value}
+			</foreach>
+		</if>
+		<if test="topN != null">
+		  LIMIT ${topN}
+		</if>
+	</select>
+	<!-- 根据条件分页查询 -->
+	<select id="queryForListForPage" parameterType="com.codelets.dao.condition.QueryPageArgument" resultType="java.util.HashMap">
+		SELECT
+		<foreach collection="resultColumns" item="entry" separator=",">
+			T.${entry}
+		</foreach>
+		  FROM ${tableName} T
+		<if test="whereColumns != null and whereColumns.size() > 0">
+			WHERE
+			<foreach collection="whereColumns" item="entry" separator="and">
+				${entry.columnName} ${entry.operand}
+				<choose>
+					<when test="entry.operand.name() == 'IN'">
+						<foreach collection="entry.value" item="inValue" open="(" close=")" separator=",">
+							#{inValue}
+						</foreach>
+					</when>
+					<when test="entry.operand.name() == 'NOT_IN'">
+						<foreach collection="entry.value" item="inValue" open="(" close=")" separator=",">
+							#{inValue}
+						</foreach>
+					</when>
+					<when test="entry.operand.name() == 'IS'">
+						NULL
+					</when>
+					<when test="entry.operand.name() == 'LIKE'">
+						CONCAT('%',#{entry.value},'%')
+					</when>
+					<otherwise>
+						#{entry.value}
+					</otherwise>
+				</choose>
+			</foreach>
+		</if>
+		<if test="orderMap != null">
+			ORDER BY 
+			<foreach collection="orderMap" index="key" item="value" separator=",">
+				${key} ${value}
+			</foreach>
+		</if>
+		  limit ${pageCond.startRow} , ${pageCond.pageSize}
+	</select>
+	<!-- 查询并根据指定列汇总数据 -->
+	<select id="querySumByColumns" parameterType="com.codelets.dao.condition.QuerySumArgument" resultType="java.util.HashMap">
+		SELECT
+		<foreach collection="sumColumnSet" item="entry" separator=",">
+			SUM(${entry}) AS ${entry}
+		</foreach>
+		  FROM ${tableName} T
+		<if test="whereColumns != null and whereColumns.size() > 0">
+			WHERE
+			<foreach collection="whereColumns" item="entry" separator="and">
+				${entry.columnName} ${entry.operand}
+				<choose>
+					<when test="entry.operand.name() == 'IN'">
+						<foreach collection="entry.value" item="inValue" open="(" close=")" separator=",">
+							#{inValue}
+						</foreach>
+					</when>
+					<when test="entry.operand.name() == 'NOT_IN'">
+						<foreach collection="entry.value" item="inValue" open="(" close=")" separator=",">
+							#{inValue}
+						</foreach>
+					</when>
+					<otherwise>
+						#{entry.value}
+					</otherwise>
+				</choose>
+			</foreach>
+		</if>
+	</select>
+	<!-- 查询并聚合数据 -->
+	<select id="queryAggregateByColumns" parameterType="com.codelets.dao.condition.QueryAggregateArgument" resultType="java.util.HashMap">
+		SELECT
+		<foreach collection="aggregateColumn" item="entry" separator=",">
+			<choose>
+				<when test="entry.operand.name() == 'SUM'">
+					SUM(${entry.columnName}) AS ${entry.columnName}
+				</when>
+				<when test="entry.operand.name() == 'AVG'">
+					AVG(${entry.columnName}) AS ${entry.columnName}
+				</when>
+				<when test="entry.operand.name() == 'MAX'">
+					MAX(${entry.columnName}) AS ${entry.columnName}
+				</when>
+				<when test="entry.operand.name() == 'MIN'">
+					MIN(${entry.columnName}) AS ${entry.columnName}
+				</when>
+				<otherwise>
+					${entry.columnName}
+				</otherwise>
+			</choose>
+		</foreach>
+		  FROM ${tableName} T
+		<if test="whereColumns != null and whereColumns.size() > 0">
+			WHERE
+			<foreach collection="whereColumns" item="entry" separator="and">
+				${entry.columnName} ${entry.operand}
+				<choose>
+					<when test="entry.operand.name() == 'IN'">
+						<foreach collection="entry.value" item="inValue" open="(" close=")" separator=",">
+							#{inValue}
+						</foreach>
+					</when>
+					<when test="entry.operand.name() == 'NOT_IN'">
+						<foreach collection="entry.value" item="inValue" open="(" close=")" separator=",">
+							#{inValue}
+						</foreach>
+					</when>
+					<otherwise>
+						#{entry.value}
+					</otherwise>
+				</choose>
+			</foreach>
+		</if>
+	</select>
+</mapper>
