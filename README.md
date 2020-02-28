@@ -37,3 +37,7 @@
    + List<T> queryListByColumnsWithPage(final Map<String, Object> columnValues, final PageCond pageCond); *根据指定列做分页查询*
    + T querySumByColumns(final Set<String> sumColumnSet, final List<IColumnCondition> whereCondition); *根据指定条件查询并汇总相应的列值*
    + T queryAggregateByColumns(final Set<IAggregateCondition> aggregateColumn,final List<IColumnCondition> whereCondition); *查询并聚合*
+# 在SingleTableDao子类中可以调用的protected方法
+   + protected int deleteByColumn(final Map<String, Object> columnValue); *根据列删除数据*
+   + protected boolean deleteListByIdList(final List<Long> idList); *根据主键集合删除数据*
+   + protected T queryOneEntryByColumns(final Map<String, Object> columnValues); *根据指定列查询出一条数据，如果是多条，则抛异常*
